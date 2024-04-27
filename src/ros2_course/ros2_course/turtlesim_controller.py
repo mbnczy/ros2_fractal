@@ -1,12 +1,13 @@
 import math
 import rclpy
 from rclpy.node import Node
-
+from geometry_msgs.msg import Twist
 
 class TurtlesimController(Node):
 
     def __init__(self):
         super().__init__('turtlesim_controller')
+        self.twist_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
 
 
     def go_straight(self, speed, distance):
