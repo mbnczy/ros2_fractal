@@ -41,6 +41,8 @@ class TurtlesimController(Node):
         vel_msg.linear.x = 0.0
         self.twist_pub.publish(vel_msg)
 
+    def turn(self, omega, angle):
+         # Implement rotation here
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController()
