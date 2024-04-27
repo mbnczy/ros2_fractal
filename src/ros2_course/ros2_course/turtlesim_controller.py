@@ -7,20 +7,31 @@ from turtlesim.msg import Pose
 
 class TurtlesimController(Node):
 
-    def __init__(self):
+    def __init__(self, speed:float, omega:float):
         super().__init__('turtlesim_controller')
-        self.twist_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
+        self.speed = speed
+        self.omega = omega
         self.pose = None
+        self.twist_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
         self.subscription = self.create_subscription(
             Pose,
             '/turtle1/pose',
             self.cb_pose,
             10)
+        self.wait_for_pose()
+
     def cb_pose(self, msg):
             self.pose = msg
 
+    def wait_for_pose(self):
+        while self.pose is None and rclpy.ok():
+            self.get_logger().info('waiting for Pose. . .')
+            rclpy.spin_once(self)
+
+    def go_prop_controller(diff,dx,dy,gain,vel_msg):
 
     def go_straight(self, speed, distance):
+        self.wait_for_pose()
         # Create and publish msg
         vel_msg = Twist()
         if distance > 0:
@@ -57,6 +68,7 @@ class TurtlesimController(Node):
 
 
     def turn(self, omega, angle):
+        self.wait_for_pose()
         # Create and publish msg for turning
         vel_msg = Twist()
         vel_msg.angular.z = omega
