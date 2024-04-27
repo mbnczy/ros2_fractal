@@ -16,6 +16,9 @@ class TurtlesimController(Node):
             '/turtle1/pose',
             self.cb_pose,
             10)
+    def cb_pose(self, msg):
+            self.pose = msg
+
 
     def go_straight(self, speed, distance):
         # Create and publish msg
