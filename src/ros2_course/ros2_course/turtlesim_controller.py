@@ -2,6 +2,7 @@ import math
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from builtin_interfaces.msg import Duration
 
 class TurtlesimController(Node):
 
@@ -22,24 +23,28 @@ class TurtlesimController(Node):
         vel_msg.angular.y = 0.0
         vel_msg.angular.z = 0.0
 
-        # Set loop rate
-        loop_rate = self.create_rate(100, self.get_clock()) # Hz
-
         # Calculate time
-        T = abs(distance / speed)
+        T = distance / speed
+
+        # Set loop rate
+        loop_rate = self.create_rate(100)
 
         # Publish first msg and note time when to stop
         self.twist_pub.publish(vel_msg)
-        when = self.get_clock().now() + Duration(seconds=T)
+        # self.get_logger().info('Turtle started.')
+        when = self.get_clock().now() + rclpy.time.Duration(seconds=T)
 
         # Publish msg while the calculated time is up
-        while self.get_clock().now() < when and rclpy.ok():
+        while (self.get_clock().now() < when) and rclpy.ok():
             self.twist_pub.publish(vel_msg)
+            # self.get_logger().info('On its way...')
             rclpy.spin_once(self)   # loop rate
 
         # turtle arrived, set velocity to 0
         vel_msg.linear.x = 0.0
         self.twist_pub.publish(vel_msg)
+        # self.get_logger().info('Arrived to destination.')
+
 
     def turn(self, omega, angle):
         vel_msg = Twist()
@@ -52,12 +57,7 @@ class TurtlesimController(Node):
         loop_rate = self.create_rate(100, self.get_clock()) # Hz
 
         T = abs(angle / omega)
-        self.twist_pub.publish(vel_msg)
-        when = self.get_clock().now() + Duration(seconds=T)
 
-        while self.get_clock().now() < when and rclpy.ok():
-            self.twist_pub.publish(vel_msg)
-            rclpy.spin_once(self)
         vel_msg.angular.z = 0.0
         self.twist_pub.publish(vel_msg)
 
@@ -65,8 +65,8 @@ class TurtlesimController(Node):
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController()
-    tc.go_straight(0.1, 1.0)
-    tc.turn(0.2, 1.5708)
+    tc.go_straight(2.0, 2.0)
+    #tc.turn(0.2, 1.5708)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
