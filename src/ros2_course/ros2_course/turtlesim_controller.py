@@ -30,6 +30,14 @@ class TurtlesimController(Node):
 
     def go_prop_controller(self,dx,dy,diff,gain,vel_msg):
 
+   def is_dest_in_front(self, dest_x, dest_y):
+       angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
+       angle_diff = math.degrees(abs(angle_to_dest - self.pose.theta))
+       #normalize to range -180,180
+       angle_diff = (angle_diff + 180) % 360 - 180
+
+       return abs(angle_diff) < 90
+
 
     def go_straight(self, speed, distance):
         self.wait_for_pose()
