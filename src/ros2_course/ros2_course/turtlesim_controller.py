@@ -29,15 +29,50 @@ class TurtlesimController(Node):
             rclpy.spin_once(self)
 
     def go_prop_controller(self,dx,dy,diff,gain,vel_msg):
+        pos = self.is_dest_in_front(dx,dy)
+        while abs(diff) >=0.01:
+            diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
+            dest_ahead = self.is_dest_in_front(dx,dy)
 
-   def is_dest_in_front(self, dest_x, dest_y):
-       angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
-       angle_diff = math.degrees(abs(angle_to_dest - self.pose.theta))
-       #normalize to range -180,180
-       angle_diff = (angle_diff + 180) % 360 - 180
+            if pos != dest_ahead:
+                distance *= -1
+                pos = dest_ahead
+                self.get_logger().info("Changed direction")
 
-       return abs(angle_diff) < 90
+            target_speed = diff * gain
+            target_speed = math.copysign(target_speed, distance)
+            target_speed = min(max(target_speed, -self.speed), self.speed)
+            vel_msg.linear.x = target_speed
 
+            self.twist_pub.publish(vel_msg)
+            rclpy.spin_once(self)
+            return vel_msg
+
+    def is_dest_in_front(self, dest_x, dest_y):
+        angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
+        angle_diff = math.degrees(abs(angle_to_dest - self.pose.theta))
+        #normalize to range -180,180
+        angle_diff = (angle_diff + 180) % 360 - 180
+
+        return abs(angle_diff) < 90
+
+    def mod_go_straight(self, distance):
+        self.wait_for_pose()
+
+        #check direction coordinates
+        dx = tx + distance * math.cos(theta)
+        dy = ty + distance * math.sin(theta)
+        diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
+
+        # Create and publish msg
+        vel_msg = Twist()
+        vel_msg.linear.x = self.speed if distance > 0 else -self.speed
+        vel_msg.angular.z = 0.0
+
+        gain=1.5
+        vel_msg = self.go_prop_controller(self,dx,dy,diff,gain,vel_msg)
+        vel_msg.linear.x = 0.0
+        self.twist_pub.publish(vel_msg)
 
     def go_straight(self, speed, distance):
         self.wait_for_pose()
@@ -112,7 +147,7 @@ class TurtlesimController(Node):
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController()
-    tc.go_straight(2.0, 2.0)
+    tc.mod_go_straight(2.0, 2.0)
     tc.turn(0.2, 1.5708)
 
     # Destroy the node explicitly
