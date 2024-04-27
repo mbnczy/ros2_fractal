@@ -9,7 +9,6 @@ class TurtlesimController(Node):
         super().__init__('turtlesim_controller')
         self.twist_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
 
-
     def go_straight(self, speed, distance):
         # Create and publish msg
         vel_msg = Twist()
@@ -27,25 +26,20 @@ class TurtlesimController(Node):
         loop_rate = self.create_rate(100, self.get_clock()) # Hz
 
         # Calculate time
-        # T = ...
+        T = abs(distance / speed)
 
         # Publish first msg and note time when to stop
         self.twist_pub.publish(vel_msg)
-        # self.get_logger().info('Turtle started.')
-        when = self.get_clock().now() + rclpy.time.Duration(seconds=T)
+        when = self.get_clock().now() + Duration(seconds=T)
 
         # Publish msg while the calculated time is up
-        while (some condition...) and rclpy.ok():
+        while self.get_clock().now() < when and rclpy.ok():
             self.twist_pub.publish(vel_msg)
-            # self.get_logger().info('On its way...')
             rclpy.spin_once(self)   # loop rate
 
         # turtle arrived, set velocity to 0
         vel_msg.linear.x = 0.0
         self.twist_pub.publish(vel_msg)
-        # self.get_logger().info('Arrived to destination.')
-
-
 
 def main(args=None):
     rclpy.init(args=args)
