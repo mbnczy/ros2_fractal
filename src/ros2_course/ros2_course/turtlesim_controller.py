@@ -28,10 +28,17 @@ class TurtlesimController(Node):
             self.get_logger().info('waiting for Pose. . .')
             rclpy.spin_once(self)
 
-    def go_prop_controller(diff,dx,dy,gain,vel_msg):
+    def go_prop_controller(self,dx,dy,diff,gain,vel_msg):
+
 
     def go_straight(self, speed, distance):
         self.wait_for_pose()
+
+        #check direction coordinates
+        dx = tx + distance * math.cos(theta)
+        dy = ty + distance * math.sin(theta)
+        diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
+
         # Create and publish msg
         vel_msg = Twist()
         if distance > 0:
