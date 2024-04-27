@@ -3,12 +3,19 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from builtin_interfaces.msg import Duration
+from turtlesim.msg import Pose
 
 class TurtlesimController(Node):
 
     def __init__(self):
         super().__init__('turtlesim_controller')
         self.twist_pub = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
+        self.pose = None
+        self.subscription = self.create_subscription(
+            Pose,
+            '/turtle1/pose',
+            self.cb_pose,
+            10)
 
     def go_straight(self, speed, distance):
         # Create and publish msg
