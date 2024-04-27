@@ -42,10 +42,31 @@ class TurtlesimController(Node):
         self.twist_pub.publish(vel_msg)
 
     def turn(self, omega, angle):
-         # Implement rotation here
+        vel_msg = Twist()
+        vel_msg.angular.z = omega
+        vel_msg.linear.x = 0.0
+        vel_msg.linear.y = 0.0
+        vel_msg.linear.z = 0.0
+        vel_msg.angular.x = 0.0
+        vel_msg.angular.y = 0.0
+        loop_rate = self.create_rate(100, self.get_clock()) # Hz
+
+        T = abs(angle / omega)
+        self.twist_pub.publish(vel_msg)
+        when = self.get_clock().now() + Duration(seconds=T)
+
+        while self.get_clock().now() < when and rclpy.ok():
+            self.twist_pub.publish(vel_msg)
+            rclpy.spin_once(self)
+        vel_msg.angular.z = 0.0
+        self.twist_pub.publish(vel_msg)
+
+
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController()
+    tc.go_straight(0.1, 1.0)
+    tc.turn(0.2, 1.5708)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
