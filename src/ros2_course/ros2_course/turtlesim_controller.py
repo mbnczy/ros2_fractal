@@ -28,8 +28,9 @@ class TurtlesimController(Node):
             self.get_logger().info('waiting for Pose. . .')
             rclpy.spin_once(self)
 
-    def go_prop_controller(self,dx,dy,diff,gain,vel_msg):
+    def go_prop_controller(self,dx,dy,diff,gain,vel_msg, distance):
         pos = self.is_dest_in_front(dx,dy)
+        #self.get_logger().info(""+str(diff))
         while abs(diff) >=0.01:
             diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
             dest_ahead = self.is_dest_in_front(dx,dy)
@@ -46,7 +47,7 @@ class TurtlesimController(Node):
 
             self.twist_pub.publish(vel_msg)
             rclpy.spin_once(self)
-            return vel_msg
+        return vel_msg
 
     def is_dest_in_front(self, dest_x, dest_y):
         angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
@@ -60,8 +61,8 @@ class TurtlesimController(Node):
         self.wait_for_pose()
 
         #check direction coordinates
-        dx = tx + distance * math.cos(theta)
-        dy = ty + distance * math.sin(theta)
+        dx = self.pose.x + distance * math.cos(self.pose.theta)
+        dy = self.pose.y + distance * math.sin(self.pose.theta)
         diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
 
         # Create and publish msg
@@ -70,7 +71,7 @@ class TurtlesimController(Node):
         vel_msg.angular.z = 0.0
 
         gain=1.5
-        vel_msg = self.go_prop_controller(self,dx,dy,diff,gain,vel_msg)
+        vel_msg = self.go_prop_controller(dx,dy,diff,gain,vel_msg,distance)
         vel_msg.linear.x = 0.0
         self.twist_pub.publish(vel_msg)
 
@@ -78,8 +79,8 @@ class TurtlesimController(Node):
         self.wait_for_pose()
 
         #check direction coordinates
-        dx = tx + distance * math.cos(theta)
-        dy = ty + distance * math.sin(theta)
+        dx = self.pose.x + distance * math.cos(self.pose.theta)
+        dy = self.pose.y + distance * math.sin(self.pose.theta)
         diff = math.sqrt((dx - self.pose.x) ** 2 + (dy - self.pose.y) ** 2)
 
         # Create and publish msg
@@ -146,9 +147,9 @@ class TurtlesimController(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    tc = TurtlesimController()
-    tc.mod_go_straight(2.0, 2.0)
-    tc.turn(0.2, 1.5708)
+    tc = TurtlesimController(18.0,60.0)
+    tc.mod_go_straight(2.0)
+    #tc.turn(0.2, 1.5708)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
