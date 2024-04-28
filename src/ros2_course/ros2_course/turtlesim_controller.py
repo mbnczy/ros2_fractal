@@ -18,17 +18,43 @@ class TurtlesimController(Node):
             '/turtle1/pose',
             self.cb_pose,
             10)
+        self.declare_parameter("level", 8)
+        self.timer = self.create_timer(5, self.param_callback)
+        self.level = None
+
         self.wait_for_pose()
 
     def cb_pose(self, msg):
-            self.pose = msg
+        '''
+        Callback function to update the turtle's pose.
+        '''
+        self.pose = msg
+
+    def param_callback(self):
+        '''
+        Callback function to update the parameter level.
+        '''
+        self.level = self.get_parameter("level").get_parameter_value().double_value
 
     def wait_for_pose(self):
+        '''
+        Waits for the turtle's pose to be available.
+        '''
         while self.pose is None and rclpy.ok():
             self.get_logger().info('waiting for Pose. . .')
             rclpy.spin_once(self)
 
     def go_prop_controller(self,dx,dy,diff,gain,vel_msg, distance):
+        '''
+        Propotional controller for moving the turtle to a specified destination.
+        Parameters:
+            dx: Destination x-coordinate.
+            dy: Destination y-coordinate.
+            diff: Difference between current and target positions.
+            gain: Proportional gain for the controller.
+            vel_msg: Twist message containing velocity commands.
+            distance: Distance to the destination.
+        '''
         pos = self.is_dest_in_front(dx,dy)
         #self.get_logger().info(""+str(diff))
         while abs(diff) >=0.01:
@@ -50,6 +76,15 @@ class TurtlesimController(Node):
         return vel_msg
 
     def turn_prop_controller(self, target_angle, diff, gain,vel_msg):
+        '''
+        Proportional controller for turning the turtle to a specified angle.
+        Parameters:
+
+            target_angle: Target angle for the turtle to turn to.
+            diff: Difference between current and target angles.
+            gain: Proportional gain for the controller.
+            vel_msg: Twist message containing velocity commands.
+        '''
         while abs(diff) > 0.015 and rclpy.ok():
             vel_msg.angular.z = math.radians(min(max(diff * gain, -self.omega), self.omega))
             self.twist_pub.publish(vel_msg)
@@ -65,6 +100,15 @@ class TurtlesimController(Node):
         return vel_msg
 
     def is_dest_in_front(self, dest_x, dest_y):
+        '''
+        Checks if the destination is in front of the turtle.
+        Parameters:
+            dest_x: Destination x-coordinate.
+            dest_y: Destination y-coordinate.
+
+        Returns:
+            True if the destination is in front of the turtle, False otherwise
+        '''
         angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
         angle_diff = math.degrees(abs(angle_to_dest - self.pose.theta))
         #normalize to range -180,180
@@ -73,6 +117,11 @@ class TurtlesimController(Node):
         return abs(angle_diff) < 90
 
     def controlled_turn(self, angle):
+        '''
+        Turns the turtle to a specified angle using proportional control.
+        Parameters:
+            angle: Angle to turn the turtle to.
+        '''
         self.wait_for_pose()
 
         vel_msg = Twist()
@@ -96,6 +145,11 @@ class TurtlesimController(Node):
         self.twist_pub.publish(vel_msg)
 
     def controlled_go_straight(self, distance):
+        '''
+        Moves the turtle straight for a specified distance using proportional control.
+        Parameters:
+            distance: Distance to move straight.
+        '''
         self.wait_for_pose()
 
         #check direction coordinates
@@ -210,6 +264,12 @@ def main(args=None):
     #tc.controlled_go_straight(2.0)
     #tc.controlled_turn(120)
 
+    levels = 8
+    while tc.level is None and rclpy.ok():
+        rclpy.spin_once(tc)
+        print(tc.level)
+
+    levels = tc.level
     tc.sierpinski_triangle(4, 8)
 
     # Destroy the node explicitly
