@@ -49,6 +49,21 @@ class TurtlesimController(Node):
             rclpy.spin_once(self)
         return vel_msg
 
+    def turn_prop_controller(self, target_angle, diff, gain,vel_msg):
+        while abs(diff) > 0.015 and rclpy.ok():
+            vel_msg.angular.z = math.radians(min(max(diff * gain, -self.omega), self.omega))
+            self.twist_pub.publish(vel_msg)
+
+            #with normalization
+            current_angle = math.degrees(self.pose.theta) % 360
+            diff = target_angle - current_angle
+
+            if abs(diff) > 180:
+                diff = (diff + 180) % 360 - 180
+
+            rclpy.spin_once(self)
+        return vel_msg
+
     def is_dest_in_front(self, dest_x, dest_y):
         angle_to_dest = math.atan2(dest_y - self.pose.y, dest_x - self.pose.x)
         angle_diff = math.degrees(abs(angle_to_dest - self.pose.theta))
@@ -57,7 +72,30 @@ class TurtlesimController(Node):
 
         return abs(angle_diff) < 90
 
-    def mod_go_straight(self, distance):
+    def controlled_turn(self, angle):
+        self.wait_for_pose()
+
+        vel_msg = Twist()
+        vel_msg.linear.x = 0.0
+        vel_msg.angular.z = math.radians(self.omega) if angle > 0 else -math.radians(self.omega)
+
+        #with normalization
+        current_angle = math.degrees(self.pose.theta) % 360
+        target_angle = (current_angle + angle) % 360
+
+        gain = 4
+
+        diff = target_angle - current_angle
+
+        if abs(diff) > 180:
+            diff = (diff + 180) % 360 - 180
+
+        vel_msg = self.turn_prop_controller(target_angle,diff,gain,vel_msg)
+
+        vel_msg.angular.z = 0.0
+        self.twist_pub.publish(vel_msg)
+
+    def controlled_go_straight(self, distance):
         self.wait_for_pose()
 
         #check direction coordinates
@@ -148,8 +186,8 @@ class TurtlesimController(Node):
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController(18.0,60.0)
-    tc.mod_go_straight(2.0)
-    #tc.turn(0.2, 1.5708)
+    tc.controlled_go_straight(2.0)
+    tc.controlled_turn(120)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
