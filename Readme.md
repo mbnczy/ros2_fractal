@@ -15,28 +15,28 @@ This ROS 2 workspace contains code for controlling a turtle robot in the Turtles
 2. Clone this repository to your ROS workspace.
 
 3. Build the ROS workspace:
-	colcon build --symlink-install
+		colcon build --symlink-install
 
 ## Usage
 
 1. Move to the workspace's directory.
 
 2. Run the Turtlesim node:
-	ros2 run turtlesim turtlesim_node
+		ros2 run turtlesim turtlesim_node
 
 3. Run the Turtlesim Controller node:
-	ros2 run ros2_course turtlesim_controller
+		ros2 run ros2_course turtlesim_controller
 
 ### or
 
 3. Run the launch.py file: 
-	ros2 launch ros2_course launch.py
+		ros2 launch ros2_course launch.py
 
 ### optional
 
 4. set level parameter:
-	ros2 param set turtlesim_controller level [level]
-
+		ros2 param set turtlesim_controller level [level]
+	
 ## Description
 
 The ROS 2 Turtlesim Workspace provides a platform for simulating turtle robot behaviors using ROS 2. It includes the following components:
