@@ -181,13 +181,35 @@ class TurtlesimController(Node):
         vel_msg.angular.z = 0.0
         self.twist_pub.publish(vel_msg)
 
+    def sierpinski_triangle(self, level, size):
+        self.controlled_go_straight(-5)
+        self.triangle(size, level)
+
+    def triangle(self, size, level):
+        if level == 0:
+            for _ in range(3):
+                self.controlled_go_straight(size)
+                self.controlled_turn(-120)
+        else:
+            self.triangle(size / 2, level - 1)
+            self.controlled_go_straight(size / 2)
+            self.triangle(size / 2, level - 1)
+            self.controlled_turn(-120)
+            self.controlled_go_straight(size / 2)
+            self.controlled_turn(120)
+            self.triangle(size / 2, level - 1)
+            self.controlled_turn(-120)
+            self.controlled_go_straight(size / 2)
+            self.controlled_turn(-120)
 
 
 def main(args=None):
     rclpy.init(args=args)
     tc = TurtlesimController(18.0,60.0)
-    tc.controlled_go_straight(2.0)
-    tc.controlled_turn(120)
+    #tc.controlled_go_straight(2.0)
+    #tc.controlled_turn(120)
+
+    tc.sierpinski_triangle(4, 8)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
