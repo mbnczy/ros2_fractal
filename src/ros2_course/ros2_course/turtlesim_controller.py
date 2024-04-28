@@ -186,6 +186,7 @@ class TurtlesimController(Node):
         self.triangle(size, level)
 
     def triangle(self, size, level):
+        self.get_logger().info('draw triangle on level:'+str(level))
         if level == 0:
             for _ in range(3):
                 self.controlled_go_straight(size)
@@ -198,7 +199,7 @@ class TurtlesimController(Node):
             self.controlled_go_straight(size / 2)
             self.controlled_turn(120)
             self.triangle(size / 2, level - 1)
-            self.controlled_turn(-120)
+            self.controlled_turn(120)
             self.controlled_go_straight(size / 2)
             self.controlled_turn(-120)
 
